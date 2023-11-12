@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: make build
+
+      - run: make test
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: |
+            target/release/hashdir
+
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v4
+        with:
+          github-token: ${{ github.token }}
+          git-push: "false"
+          skip-version-file: "true"
+          output-file: "false"
+          skip-commit: "true"
+          skip-on-empty: "true"
+          skip-tag: "true"
+
+      - uses: actions/download-artifact@v3
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        with:
+          name: artifacts
+          path: artifacts
+
+      - name: Create Release
+        run: gh release create "$TAG_NAME" --notes "$BODY" artifacts/bot artifacts/notify
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.changelog.outputs.tag }}
+          BODY: ${{ steps.changelog.outputs.clean_changelog }}

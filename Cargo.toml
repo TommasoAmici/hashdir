@@ -1,0 +1,12 @@
+[package]
+name = "hashdir"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.4.8", features = ["derive"] }
+ignore = "0.4"
+
+[dependencies.xxhash-rust]
+version = "0.8.5"
+features = ["xxh3", "const_xxh3"]
