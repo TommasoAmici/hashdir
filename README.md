@@ -53,3 +53,6 @@ changed.
 
 If you had a test report that matches the hash of the code in `feat/b` you could
 skip running the tests again if the hash hasn't changed.
+
+In a rudimentary way, this is similar to what [nx](https://nx.dev/) and [turbo](https://turbo.build/)
+do in the JavaScript ecosystem.
